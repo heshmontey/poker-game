@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Poker Table Manager</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ffcc00;
+            margin-top: 20px;
+        }
+
+        .table-container {
+            position: relative;
+            width: 700px;
+            height: 500px;
+            background: #2b2b2b;
+            border-radius: 50%;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .seat {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            background: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .seat .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .seat .player-stats {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .add-player {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            background: #2b2b2b;
+            color: #fff;
+        }
+
+        button {
+            background: #ffcc00;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #e6b800;
+        }
+
+        .actions {
+            margin-top: 5px;
+        }
+
+        .actions button {
+            background: #444;
+            color: #fff;
+            margin: 3px;
+            font-size: 0.8rem;
+            padding: 5px;
+        }
+
+        .actions button:hover {
+            background: #666;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #ffcc00;
+        }
+
+        .summary span {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Poker Table Manager</h1>
+
+    <!-- Add Players Section -->
+    <div class="add-player">
+        <input type="text" id="playerName" placeholder="Player Name">
+        <button onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <!-- Poker Table -->
+    <div class="table-container" id="pokerTable">
+        <!-- Seats will be dynamically added here -->
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary">
+        <p>Total Buy-Ins: $<span id="totalBuyIns">0</span></p>
+        <p>Total Cash on Table: $<span id="totalCash">0</span></p>
+    </div>
+
+    <script>
+        const players = [];
+
+        // Seat positions around the oval table
+        const seatPositions = [
+            { top: '5%', left: '50%', transform: 'translate(-50%, 0)' },
+            { top: '20%', left: '10%' },
+            { top: '50%', left: '5%', transform: 'translateY(-50%)' },
+            { top: '80%', left: '10%' },
+            { top: '95%', left: '50%', transform: 'translate(-50%, -100%)' },
+            { top: '80%', left: '90%' },
+            { top: '50%', left: '95%', transform: 'translateY(-50%)' },
+            { top: '20%', left: '90%' },
+            { top: '5%', left: '70%', transform: 'translate(-50%, 0)' },
+            { top: '5%', left: '30%', transform: 'translate(-50%, 0)' },
+        ];
+
+        let totalBuyIns = 0;
+        let totalCash = 0;
+
+        // Add a new player to the table
+        function addPlayer() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (playerName === '') {
+                alert('Please enter a player name.');
+                return;
+            }
+
+            if (players.length >= 10) {
+                alert('The table is full! Max 10 players.');
+                return;
+            }
+
+            const player = {
+                name: playerName,
+                buyIns: 0,
+                cash: 0,
+            };
+
+            players.push(player);
+            updateTable();
+            document.getElementById('playerName').value = '';
+        }
+
+        // Update the poker table with players
+        function updateTable() {
+            const pokerTable = document.getElementById('pokerTable');
+            pokerTable.innerHTML = ''; // Clear the table
+
+            totalBuyIns = 0;
+            totalCash = 0;
+
+            players.forEach((player, index) => {
+                totalBuyIns += player.buyIns;
+                totalCash += player.cash;
+
+                const seat = document.createElement('div');
+                seat.className = 'seat';
+                seat.style.top = seatPositions[index].top;
+                seat.style.left = seatPositions[index].left;
+                seat.style.transform = seatPositions[index].transform || '';
+
+                seat.innerHTML = `
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-stats">Buy-Ins: $${player.buyIns}<br>Cash: $${player.cash}</div>
+                    <div class="actions">
+                        <button onclick="adjustBuyIn(${index}, 10)">+10 Buy-In</button>
+                        <button onclick="adjustCash(${index}, 10)">+10 Cash</button>
+                        <button onclick="cashOut(${index})">Cash Out</button>
+                    </div>
+                `;
+
+                pokerTable.appendChild(seat);
+            });
+
+            // Update summary
+            document.getElementById('totalBuyIns').innerText = totalBuyIns.toFixed(2);
+            document.getElementById('totalCash').innerText = totalCash.toFixed(2);
+        }
+
+        // Adjust buy-in for a player
+        function adjustBuyIn(index, amount) {
+            players[index].buyIns += amount;
+            totalCash += amount; // Add buy-in to the table cash
+            updateTable();
+        }
+
+        // Adjust cash for a player
+        function adjustCash(index, amount) {
+            players[index].cash += amount;
+            updateTable();
+        }
+
+        // Cash out a player
+        function cashOut(index) {
+            const player = players[index];
+            totalCash -= player.cash; // Deduct player's cash from total cash
+            player.cash = 0; // Reset their cash balance
+            updateTable();
+        }
+    </script>
+</body>
+</html>
